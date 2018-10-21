@@ -58,19 +58,20 @@ def main():
                 quit()
         # sensor data
         # mpu9250.update_values()
+        
         # using average values
-        mpu9250.update_values_with_average(2)
+        mpu9250.update_values_with_moving_average(15)
         accel = mpu9250._accel_avg
         gyro = mpu9250._gyro_avg
         mag = mpu9250._mag_avg
+        # madgwick algorithm
         m.update(accel, gyro * np.pi / 180, mag)
-        q = m._quaternion
+        q = m._quaternion_avg
         q = np.squeeze(np.asarray(q))
-        pitch, roll, yaw = Madgwick.quaternion_to_euler_angle(q[0], q[1], q[2], q[3], True)
 
         glMatrixMode(GL_MODELVIEW)
         glLoadMatrixf(Madgwick.quat_to_rotmatrix(q))
-        glScalef(0.5, 0.5, 0.5)
+        glScalef(0.2, 0.2, 0.2)
         #glRotatef(q[0], q[1], q[2], q[3])
         #glRotatef(1, 3, 1, 1)
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)

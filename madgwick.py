@@ -5,7 +5,20 @@ class Madgwick:
     def __init__(self, sample_period = 1/100, quaternion = [1,0,0,0], beta = 1):
         self._sample_period = 1/100
         self._quaternion = [1, 0, 0, 0]
+        self._quaternion_avg = np.array([1, 0, 0, 0])
+        self._fifo_q = []
         self._beta = 1
+
+    def quaternion_fifo(self, size=5):
+        self._fifo_q.append(np.array(self._quaternion))
+
+        if len(self._fifo_q) > size:
+            self._fifo_q.pop(0)
+
+        for element in self._fifo_q:
+            self._quaternion_avg = self._quaternion_avg + element
+        
+        self._quaternion_avg = self._quaternion_avg / len(self._fifo_q)
 
     def update(self, accelerometer, gyroscope, magnetometer):
         q = self._quaternion
@@ -45,6 +58,7 @@ class Madgwick:
         q = q + q_dot * self._sample_period
         self._quaternion = q / np.linalg.norm(q)
         self._quaternion = np.squeeze(np.asarray(self._quaternion))
+        self.quaternion_fifo(15)
 
     def update_imu(self, accelerometer, gyroscope):
         q = self._quaternion

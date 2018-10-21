@@ -15,6 +15,11 @@ class Sensor:
         self._accel_avg = np.array([0, 0, 0])
         self._gyro_avg = np.array([0, 0, 0])
         self._mag_avg = np.array([0, 0, 0])
+        # average fifos
+        self._fifo_accel = []
+        self._fifo_gyro = []
+        self._fifo_mag = []
+    
     @property
     def accelerometer(self):
         return self._accelerometer
@@ -42,29 +47,51 @@ class Sensor:
     def update_values(self):
         data = self._ser.readline()
         string_data = data.decode()
-        ax, ay, az, gx, gy, gz, mx, my, mz = string_data.split(":")
-        ax = float(ax)
-        ay = float(ay)
-        az = float(az)
-        gx = float(gx)
-        gy = float(gy)
-        gz = float(gz)
-        mx = float(mx)
-        my = float(my)
-        mz = float(mz)
+        try:
+            ax, ay, az, gx, gy, gz, mx, my, mz = string_data.split(":")
+            ax = float(ax)
+            ay = float(ay)
+            az = float(az)
+            gx = float(gx)
+            gy = float(gy)
+            gz = float(gz)
+            mx = float(mx)
+            my = float(my)
+            mz = float(mz)
+        except:
+            print("Oops, usb sucks!")
+            ax = self.accelerometer[0]
+            ay = self.accelerometer[1]
+            az = self.accelerometer[2]
+            gx = self.gyroscope[0]
+            gy = self.gyroscope[1]
+            gz = self.gyroscope[2]
+            mx = self.magnetometer[0]
+            my = self.magnetometer[1]
+            mz = self.magnetometer[2]
+        
         self.accelerometer = np.array([ax, ay, az])
         self.gyroscope = np.array([gx, gy, gz])
         self.magnetometer = np.array([mx, my, mz])
     
-    def update_values_with_average(self, samples=5):
-        for i in range(samples):
-            self.update_values()
-            self._accel_avg = self._accel_avg + self.accelerometer
-            self._gyro_avg = self._gyro_avg + self.gyroscope
-            self._mag_avg = self._mag_avg + self.magnetometer
-        self._accel_avg = self._accel_avg / samples
-        self._gyro_avg = self._gyro_avg / samples
-        self._mag_avg = self._mag_avg / samples
-        self.accelerometer = self._accel_avg
-        self.gyroscope = self._gyro_avg
-        self.magnetometer = self._mag_avg
+    def update_values_with_moving_average(self, size=5):
+        self.update_values()
+        self._fifo_accel.append(self.accelerometer)
+        self._fifo_gyro.append(self.gyroscope)
+        self._fifo_mag.append(self.magnetometer)
+
+        if len(self._fifo_accel) > size:
+            self._fifo_accel.pop(0)
+            self._fifo_gyro.pop(0)
+            self._fifo_mag.pop(0)
+
+        for element in self._fifo_accel:
+            self._accel_avg = self._accel_avg + element
+        for element in self._fifo_gyro:
+            self._gyro_avg = self._gyro_avg + element
+        for element in self._fifo_mag:
+            self._mag_avg = self._mag_avg + element
+
+        self._accel_avg = self._accel_avg / len(self._fifo_accel)
+        self._gyro_avg = self._gyro_avg / len(self._fifo_gyro)
+        self._mag_avg = self._mag_avg / len(self._fifo_mag)
