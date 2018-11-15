@@ -45,6 +45,9 @@ class Sensor:
         self._magnetometer = value
         
     def update_values(self):
+        """
+        This method updates all the values of the sensor object through serial port
+        """
         data = self._ser.readline()
         string_data = data.decode()
         try:
@@ -59,7 +62,7 @@ class Sensor:
             my = float(my)
             mz = float(mz)
         except:
-            print("Oops, usb sucks!")
+            print("Oops, usb problems!")
             ax = self.accelerometer[0]
             ay = self.accelerometer[1]
             az = self.accelerometer[2]
@@ -75,6 +78,9 @@ class Sensor:
         self.magnetometer = np.array([mx, my, mz])
     
     def update_values_with_moving_average(self, size=5):
+        """
+        This method implements moving average to smooth sensor data
+        """
         self.update_values()
         self._fifo_accel.append(self.accelerometer)
         self._fifo_gyro.append(self.gyroscope)

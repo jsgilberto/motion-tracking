@@ -10,6 +10,9 @@ class Madgwick:
         self._beta = 1
 
     def quaternion_fifo(self, size=5):
+        """
+        This method smooths quaternion data
+        """
         self._fifo_q.append(np.array(self._quaternion))
 
         if len(self._fifo_q) > size:
@@ -21,6 +24,9 @@ class Madgwick:
         self._quaternion_avg = self._quaternion_avg / len(self._fifo_q)
 
     def update(self, accelerometer, gyroscope, magnetometer):
+        """
+        Implementation of madgwick's algorithm
+        """
         q = self._quaternion
         
         # normalise data measurements
@@ -63,6 +69,9 @@ class Madgwick:
         self.quaternion_fifo(15)
 
     def update_inaccurate(self, accelerometer, gyroscope):
+        """
+        This method does not use magnetometer data, so it's more inaccurate
+        """
         q = self._quaternion
 
         # normalise accelerometer measurement
@@ -93,6 +102,9 @@ class Madgwick:
 
     @staticmethod
     def quaternion_product(a, b):
+        """
+        Returns the product of two quaternions
+        """
         a = np.array(a)
         b = np.array(b)
         v0 = a[0]
@@ -106,10 +118,16 @@ class Madgwick:
 
     @staticmethod
     def quaternion_conjugate(a):
+        """
+        Returns the quaternion conjugate
+        """
         return [a[0], -a[1], -a[2], -a[3]]
     
     @staticmethod
     def quaternion_to_euler_angle(w, x, y, z, degrees):
+        """
+        This method returns yaw, pitch and roll from a given quaternion
+        """
         dqw = w
         dqx = x
         dqy = y
@@ -146,6 +164,9 @@ class Madgwick:
     
     @staticmethod
     def quat_to_rotmatrix(q):
+        """
+        Returns the rotation matrix from a given quaternion
+        """
         qw, qx, qy, qz = q
         rot_mat = np.matrix(
            [[1 - 2*qy**2 - 2*qz**2,     2*qx*qy - 2*qz*qw,      2*qx*qz + 2*qy*qw,          0],
