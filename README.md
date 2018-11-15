@@ -2,7 +2,8 @@
 
 This project aims to use MPU9250 sensor with Madgwick's algorithm to achieve motion tracking.
 
-[!sensor](https://im.ezgif.com/tmp/ezgif-1-eaaec7f85e8c.gif)
+![sensor](https://im.ezgif.com/tmp/ezgif-1-eaaec7f85e8c.gif)
+
 ## Hardware
 
 MPU9250 - Accelerometer, Gyroscope and Magnetometer
