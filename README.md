@@ -6,12 +6,14 @@ This project aims to use MPU9250 sensor with Madgwick's algorithm to achieve mot
 
 ## Hardware
 
-MPU9250 - Accelerometer, Gyroscope and Magnetometer
-Arduino Pro Micro
+The sensor and the arduino used is not mandatory, but the code is only tested in the follwing devices:
+
+- MPU9250 - Accelerometer, Gyroscope and Magnetometer
+- Arduino Pro Micro
 
 ## Dependencies
 
-In order to run this project, you need to have the following:
+In order to run this project, you need to have the following installed:
 
 - Arduino IDE
 - Python 3
@@ -22,12 +24,6 @@ In order to run this project, you need to have the following:
 To use this module, you need to follow the next steps:
 - Load `mpu9250_serial_data.ino` into your arduino (Test it with your serial terminal in your Arduino IDE)
 - Once you have the program loaded and running in your Arduino, run `main.py` file with `python main.py` and that should do it!
-
-
-## Hardware
-
-MPU9250 - Accelerometer, Gyroscope and Magnetometer
-Arduino Pro Micro
 
 ## About the Algorithm
 
