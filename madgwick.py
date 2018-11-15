@@ -34,25 +34,27 @@ class Madgwick:
         b = [0, np.linalg.norm([h[1], h[2]]), 0, h[3]]
 
         # gradient descent algorithm corrective step
-        F = [   2 * (q[1] * q[3] - q[0] * q[2]) - accelerometer[0],
-                2 * (q[0] * q[1] + q[2] * q[3]) - accelerometer[1],
-                2 * (0.5 - q[1]**2 - q[2]**2) - accelerometer[2],
-                2 * b[1] * (0.5 - q[2]**2 - q[3]**2) + 2 * b[3]*(q[1] * q[3] - q[0] * q[2]) - magnetometer[0],
-                2 * b[1] * (q[1] * q[2] - q[0] * q[3]) + 2 * b[3] * (q[0] * q[1] + q[2] * q[3]) - magnetometer[1],
-                2 * b[1] * (q[0] * q[2] + q[1] * q[3]) + 2 * b[3] * (0.5 - q[1]**2 - q[2]**2) - magnetometer[2]
-            ]
-        J = np.matrix([ [-2 * q[2],              2 * q[3],               -2 * q[0],                                 2 * q[1]],
-                        [2 * q[1],               2 * q[0],               2 * q[3],                                  2 * q[2]],
-                        [0,                      -4 * q[1],              -4 * q[2],                                 0],
-                        [-2 * b[3] * q[2],       2 * b[3] * q[3],        -4 * b[1] * q[2] - 2 * b[3] * q[0],        -4*b[1]*q[3]+2*b[3]*q[1]],
-                        [-2 * b[1] * q[3] + 2*b[3]*q[1], 2*b[1]*q[2]+2*b[3]*q[0], 2*b[1]*q[1]+2*b[3]*q[3],          -2*b[1]*q[0]+2*b[3]*q[2]],
-                        [2*b[1]*q[2], 2*b[1]*q[3]-4*b[3]*q[1], 2*b[1]*q[0]-4*b[3]*q[2], 2*b[1]*q[1]]
-            ])
+        F = [2 * (q[1] * q[3] - q[0] * q[2]) - accelerometer[0],
+             2 * (q[0] * q[1] + q[2] * q[3]) - accelerometer[1],
+             2 * (0.5 - q[1]**2 - q[2]**2) - accelerometer[2],
+             2 * b[1] * (0.5 - q[2]**2 - q[3]**2) + 2 * b[3]*(q[1] * q[3] - q[0] * q[2]) - magnetometer[0],
+             2 * b[1] * (q[1] * q[2] - q[0] * q[3]) + 2 * b[3] * (q[0] * q[1] + q[2] * q[3]) - magnetometer[1],
+             2 * b[1] * (q[0] * q[2] + q[1] * q[3]) + 2 * b[3] * (0.5 - q[1]**2 - q[2]**2) - magnetometer[2]]
+        
+        J = np.matrix([
+            [-2 * q[2], 2 * q[3], -2 * q[0], 2 * q[1]],
+            [2 * q[1], 2 * q[0], 2 * q[3], 2 * q[2]],
+            [0, -4 * q[1], -4 * q[2], 0],
+            [-2 * b[3] * q[2], 2 * b[3] * q[3], -4 * b[1] * q[2] - 2 * b[3] * q[0], -4*b[1]*q[3]+2*b[3]*q[1]],
+            [-2 * b[1] * q[3] + 2*b[3]*q[1], 2*b[1]*q[2]+2*b[3]*q[0], 2*b[1]*q[1]+2*b[3]*q[3], -2*b[1]*q[0]+2*b[3]*q[2]],
+            [2*b[1]*q[2], 2*b[1]*q[3]-4*b[3]*q[1], 2*b[1]*q[0]-4*b[3]*q[2], 2*b[1]*q[1]]])
+        
         step = (np.matmul(np.transpose(J), F))
         step = step / np.linalg.norm(step)
         
         # compute rate of change of quaternion
-        q_dot = 0.5 * self.quaternion_product(q, [0, gyroscope[0], gyroscope[1], gyroscope[2]]) - self._beta * step
+        q_dot = 0.5 * self.quaternion_product(q, [0, gyroscope[0], gyroscope[1], gyroscope[2]]) \
+                    - self._beta * step
         
         # integrate to yield quaternion
         q = q + q_dot * self._sample_period
@@ -60,28 +62,28 @@ class Madgwick:
         self._quaternion = np.squeeze(np.asarray(self._quaternion))
         self.quaternion_fifo(15)
 
-    def update_imu(self, accelerometer, gyroscope):
+    def update_inaccurate(self, accelerometer, gyroscope):
         q = self._quaternion
 
         # normalise accelerometer measurement
         accelerometer = accelerometer / np.linalg.norm(accelerometer)
 
         # gradient descent algorithm corrective step
-        F = [   2*(q[1]*q[3] - q[0]*q[2]) - accelerometer[0],
-                2*(q[0]*q[1] + q[2]*q[3]) - accelerometer[1],
-                2*(0.5 - q[1]**2 - q[2]**2) - accelerometer[2]
-        ]
+        F = [2*(q[1]*q[3] - q[0]*q[2]) - accelerometer[0],
+             2*(q[0]*q[1] + q[2]*q[3]) - accelerometer[1],
+             2*(0.5 - q[1]**2 - q[2]**2) - accelerometer[2]]
 
-        J = np.matrix([ [-2*q[2], 2*q[3], -2*q[0], 2*q[1]],
-                        [2*q[1], 2*q[0], 2*q[3], 2*q[2]],
-                        [0, -4*q[1], -4*q[2], 0]
+        J = np.matrix([[-2*q[2], 2*q[3], -2*q[0], 2*q[1]],
+                       [2*q[1], 2*q[0], 2*q[3], 2*q[2]],
+                       [0, -4*q[1], -4*q[2], 0]
 
         ])
         step = (np.matmul(np.transpose(J), F))
         step = step / np.linalg.norm(step)
 
         # compute rate of change of quaternion
-        q_dot = 0.5 * self.quaternion_product(q, [0, gyroscope[0], gyroscope[1], gyroscope[2]]) - self._beta * np.transpose(step)
+        q_dot = 0.5 * self.quaternion_product(q, [0, gyroscope[0], gyroscope[1], gyroscope[2]]) \
+                - self._beta * np.transpose(step)
 
         # integrate to yield quaternion
         q = q + q_dot * self._sample_period
@@ -145,9 +147,9 @@ class Madgwick:
     @staticmethod
     def quat_to_rotmatrix(q):
         qw, qx, qy, qz = q
-        rot_mat = np.matrix([   [1 - 2*qy**2 - 2*qz**2,     2*qx*qy - 2*qz*qw,      2*qx*qz + 2*qy*qw,          0],
-                                [2*qx*qy + 2*qz*qw,         1 - 2*qx**2 - 2*qz**2,	2*qy*qz - 2*qx*qw,          0],
-                                [2*qx*qz - 2*qy*qw,         2*qy*qz + 2*qx*qw,      1 - 2*qx**2 - 2*qy**2,      0],
-                                [0,                         0,                      0,                          1]
-        ])
+        rot_mat = np.matrix(
+           [[1 - 2*qy**2 - 2*qz**2,     2*qx*qy - 2*qz*qw,      2*qx*qz + 2*qy*qw,          0],
+            [2*qx*qy + 2*qz*qw,         1 - 2*qx**2 - 2*qz**2,	2*qy*qz - 2*qx*qw,          0],
+            [2*qx*qz - 2*qy*qw,         2*qy*qz + 2*qx*qw,      1 - 2*qx**2 - 2*qy**2,      0],
+            [0,                         0,                      0,                          1]])
         return rot_mat
